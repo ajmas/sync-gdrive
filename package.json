@@ -1,6 +1,7 @@
-i
+{
+
   "name": "sync-gdrive",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Module to synchronise a file or directory in Google Drive with the local file system",
   "main": "lib/index.js",
   "engines": {
@@ -13,6 +14,10 @@ i
     "sync",
     "google-drive"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:maison-notman-house/sync-gdrive.git"
+  },
   "author": "Andre John Mas",
   "license": "MIT",
   "dependencies": {
