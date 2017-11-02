@@ -15,7 +15,7 @@ Usage:
 
 ```
 const gdriveSync = require('sync-gdrive');
-gdriveSync(fileOrFolderId, baseFolder, key);
+gdriveSync.sync(fileOrFolderId, baseFolder, key);
 ```
 
 Where:
