@@ -1,14 +1,15 @@
 {
-
   "name": "sync-gdrive",
-  "version": "0.5.1",
+  "version": "0.9.0",
   "description": "Module to synchronise a file or directory in Google Drive with the local file system",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "engines": {
-    "node": ">=6.7.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "lint": "eslint -c .eslintrc.js --ext .ts src",
+    "test": "mocha --exit -r ts-node/register -r esm test/*.ts"
   },
   "keywords": [
     "sync",
@@ -21,7 +22,23 @@
   "author": "Andre John Mas",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "googleapis": "^19.0.0"
+    "fs-extra": "^9.0.0",
+    "googleapis": "^51.0.0",
+    "mime": "^2.4.6"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/node": "^14.0.5",
+    "@typescript-eslint/eslint-plugin": "^3.0.2",
+    "@typescript-eslint/parser": "^3.0.2",
+    "chai": "^4.2.0",
+    "dotenv": "^8.2.0",
+    "eslint": "^7.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "esm": "^3.2.25",
+    "mocha": "^7.2.0",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.9.3"
   }
 }

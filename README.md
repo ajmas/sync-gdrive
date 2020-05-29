@@ -1,5 +1,5 @@
-Sync GDrive
-===========
+# Sync GDrive
+
 
 This is a library to allow you to synchronise a file or directory in Google Drive with the local file system. Currently this solution provides a one way sync from Google Drive to the local file system.
 
@@ -7,34 +7,75 @@ This code was orginally developped for the maison-notman-house API server, but i
 
 The orginal solution had been created with the idea of using Google Drive as a simple CMS and then periodically synchronising the specified folder with the local file system, for use with the running API server.
 
-Code is written with ES6 in mind.
+This current version is written in Typescript and leverages async/await internally.
 
-**WARNING** Before using, note that any files or folders in your local sync folder will be wiped, so ensure you start with an empty folder.
+**WARNING** Before using, note that any files or folders in your local sync folder will be overwitten,
+so ensure you start with an empty folder.
 
 Usage:
 
-```
+```js
+// Regular JS
 const gdriveSync = require('sync-gdrive');
-gdriveSync.sync(fileOrFolderId, baseFolder, key);
+
+const keyConfig = {
+  clientEmail: process.env.GOOGLE_CLIENT_EMAIL,
+  privateKey: process.env.GOOGLE_PRIVATE_KEY
+};
+
+const options = {};
+
+syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
+```
+
+```ts
+// Typescript
+import syncGDrive, { IKeyConfig } from 'sync-gdrive';
+
+const keyConfig: IKeyConfig = {
+  clientEmail: process.env.GOOGLE_CLIENT_EMAIL,
+  privateKey: process.env.GOOGLE_PRIVATE_KEY
+};
+
+const options = {};
+
+syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
 ```
 
 Where:
 
-   * **fileOrFolderId** id of directory or file on Google Drive
-   * **baseFolder** local folder that should be synchronised. Note any existing files in this folder will be wiped if they don't correspond to something upstream.
-   * **key** Your key generated from the [Google API console](https://console.developers.google.com/apis/dashboard).
+   - **fileOrFolderId** id of directory or file on Google Drive
+   - **destFolder** local folder that should be synchronised. Note any existing files in this folder will be wiped if they don't correspond to something upstream.
+   - **keyConfig** Your key generated from the [Google API console](https://console.developers.google.com/apis/dashboard).
+   - **options** optional parameter, allowing for tweaking of certain functionality:
 
-   
+     - verbose: if true displays debug info (default: false)
+     - callback: callback when a file is synced (default: undefined)
+     - docsFileType: file type to use when exporting a Google Doc (default: docx )
+     - sheetsFileType: file type to use when exporting a Google Sheet (default: xlsx)
+     - slidesFileType: file type to use when exporting Google Slides (default: pdf)
+     - fallbackGSuiteFileType: file type to use when exporting other GSuite files (default: pdf),
+     - abortOnError: whether to abort on an error,
+     - logger: logger to use in verbose mode, must have support for debug, warn and error functions
+     - sleepTime: Rate limiter. How long to wait, in milleseconds, after downloading a file. (default: 500)
+
+
 Further reading:
 
-   * [googleapis](https://www.npmjs.com/package/googleapis) npm module
+   - [googleapis](https://www.npmjs.com/package/googleapis) npm module
+   - [supported export types](https://developers.google.com/drive/api/v3/ref-export-formats)
 
-Contributors
-------------
+## Contributions & Feedback
+
+Contributions and feedback is welcome. Please open
+a ticket in the issue tracker for the project on GitHub
+
+## Contributors
+
 
   * Andre John Mas
 
-License
--------
+## License
+
 
 Licensed using the MIT license. See: https://opensource.org/licenses/MIT
