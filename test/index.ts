@@ -4,7 +4,7 @@ import os from 'os';
 import { promisify } from 'util';
 
 import { describe, before, after, it } from 'mocha';
-import chai from 'chai';
+import chai, { expect } from 'chai';
 
 import dotenv from 'dotenv';
 import rimraf from 'rimraf';
@@ -16,8 +16,6 @@ const asyncRimraf = promisify(rimraf);
 
 const removeTmpFolder = false;
 let tmpFolder = '';
-
-chai.should();
 
 const expectedManifest = [{
    path: 'gsuite-docs/Hello doc.docx',
@@ -65,6 +63,8 @@ describe('Endpoints', async () => {
 
         const filefolderByPath = {};
 
+        expect(syncedFileFolders).to.be.not.null;
+
         syncedFileFolders.forEach(filefolder => {
             filefolderByPath[filefolder.file] = filefolder;
         })
@@ -74,11 +74,12 @@ describe('Endpoints', async () => {
         expectedManifest.forEach(filefolder => {
             const filefolderPath = path.join(tmpFolder, filefolder.path);
 
-            filefolderByPath.should.have.property(filefolderPath);
+            expect(syncedFileFolders).to.be.not.null;
+            expect(filefolderByPath).to.have.property(filefolderPath);
 
             const stats = fs.statSync(filefolderPath);
 
-            stats.size.should.equal(filefolder.size);
+            expect(stats.size).to.equal(filefolder.size);
         });
     });
 
