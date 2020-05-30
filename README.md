@@ -25,7 +25,7 @@ const keyConfig = {
 
 const options = {};
 
-syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
+await syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
 ```
 
 ```ts
@@ -39,7 +39,7 @@ const keyConfig: IKeyConfig = {
 
 const options = {};
 
-syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
+await syncGDrive(fileOrFolderId, destFolder, keyConfig, options);
 ```
 
 Where:
