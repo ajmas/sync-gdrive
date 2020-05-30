@@ -14,9 +14,6 @@ import syncGDrive, { IKeyConfig } from '../src';
 const fsMkdtemp = promisify(fs.mkdtemp);
 const asyncRimraf = promisify(rimraf);
 
-const removeTmpFolder = false;
-let tmpFolder = '';
-
 const expectedManifest = [{
    path: 'gsuite-docs/Hello doc.docx',
    size: 6099
@@ -28,25 +25,34 @@ const expectedManifest = [{
     size: 4709
 }];
 
+const removeTmpFolder = false;
+let tmpFolder = '';
+let filefolderId;
+let privateKey;
+let clientEmail;
+
 describe('Endpoints', async () => {
 
     before(async () => {
         dotenv.config();
 
-        if (!process.env.GDRIVE_FILEFOLDER_ID) {
+        filefolderId = process.env.GDRIVE_FILEFOLDER_ID;
+        if (!filefolderId) {
             throw new Error('No Google Drive file or folder id specified. Be sure to set env GDRIVE_FILEFOLDER_ID.');
         }
 
-        if (!process.env.GOOGLE_CLIENT_EMAIL) {
+        clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+        if (!clientEmail) {
             throw new Error('No client email specified. Be sure to set GOOGLE_CLIENT_EMAIL.');
         }
 
-        if (!process.env.GOOGLE_PRIVATE_KEY) {
+        privateKey = process.env.GOOGLE_PRIVATE_KEY;
+        if (!privateKey) {
             throw new Error('No Google API privaye key specified. Be sure to set GOOGLE_PRIVATE_KEY.');
         }
 
-        const x = process.env.GOOGLE_PRIVATE_KEY.replace(' ', '');
-        console.log('XXX',x, x.length);
+        privateKey = privateKey.trim();
+
         tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), `tmp-sync-gdrive}`));
 
     });
@@ -55,13 +61,11 @@ describe('Endpoints', async () => {
         this.timeout(30000);
 
         const keyConfig: IKeyConfig = {
-            clientEmail: process.env.GOOGLE_CLIENT_EMAIL,
-            privateKey: process.env.GOOGLE_PRIVATE_KEY
+            clientEmail: clientEmail,
+            privateKey: privateKey
         };
 
-        const folderId = process.env.GDRIVE_FILEFOLDER_ID;
-
-        const syncedFileFolders = await syncGDrive(folderId, tmpFolder, keyConfig, { verbose: false });
+        const syncedFileFolders = await syncGDrive(filefolderId, tmpFolder, keyConfig, { verbose: false });
 
         const filefolderByPath = {};
 
