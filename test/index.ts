@@ -45,6 +45,7 @@ describe('Endpoints', async () => {
             throw new Error('No Google API privaye key specified. Be sure to set GOOGLE_PRIVATE_KEY.');
         }
 
+        console.log('XXX', process.env.GOOGLE_PRIVATE_KEY, process.env.GOOGLE_PRIVATE_KEY.length);
         tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), `tmp-sync-gdrive}`));
 
     });
