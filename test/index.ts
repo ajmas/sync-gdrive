@@ -54,6 +54,8 @@ describe('Endpoints', async () => {
         privateKey = privateKey.replace('!', '');
         privateKey = privateKey.trim();
 
+        console.log(`>>>${privateKey}<<<`);
+
         tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), `tmp-sync-gdrive}`));
 
     });
