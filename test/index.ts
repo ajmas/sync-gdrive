@@ -4,7 +4,7 @@ import os from 'os';
 import { promisify } from 'util';
 
 import { describe, before, after, it } from 'mocha';
-import chai, { expect } from 'chai';
+import { expect } from 'chai';
 
 import dotenv from 'dotenv';
 import rimraf from 'rimraf';
@@ -15,8 +15,8 @@ const fsMkdtemp = promisify(fs.mkdtemp);
 const asyncRimraf = promisify(rimraf);
 
 const expectedManifest = [{
-   path: 'gsuite-docs/Hello doc.docx',
-   size: 6099
+    path: 'gsuite-docs/Hello doc.docx',
+    size: 6099
 }, {
     path: 'gsuite-docs/Hello slides.pdf',
     size: 15787
@@ -51,12 +51,9 @@ describe('Endpoints', async () => {
             throw new Error('No Google API privaye key specified. Be sure to set GOOGLE_PRIVATE_KEY.');
         }
 
-        privateKey = privateKey.replace('!', '');
-        privateKey = privateKey.trim();
+        privateKey = privateKey.replace(/\\n/g, '\n').trim();
 
-        console.log(`>>>${privateKey}<<<`);
-
-        tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), `tmp-sync-gdrive}`));
+        tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), 'tmp-sync-gdrive}'));
 
     });
 
