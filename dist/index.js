@@ -122,8 +122,10 @@ function downloadFile(drive, file, destFolder, options = {}) {
     return __awaiter(this, void 0, void 0, function* () {
         const filePath = path_1.default.join(destFolder, file.name);
         if (yield isGDriveFileNewer(file, filePath)) {
-            options.logger.debug('downloading newer: ', filePath);
-            options.logger.debug('creating file: ', filePath);
+            if (options.verbose) {
+                options.logger.debug('downloading newer: ', filePath);
+                options.logger.debug('creating file: ', filePath);
+            }
             const dest = fs_extra_1.default.createWriteStream(filePath);
             const response = yield drive.files.get({
                 fileId: file.id,
@@ -217,38 +219,46 @@ function downloadContent(drive, file, path, options) {
 }
 function visitDirectory(drive, fileId, folderPath, options, callback) {
     return __awaiter(this, void 0, void 0, function* () {
-        const response = yield drive.files.list({
-            includeRemoved: false,
-            spaces: 'drive',
-            fileId: fileId,
-            fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime)',
-            q: `'${fileId}' in parents`
-        });
-        const { files } = response.data;
+        let nextPageToken;
         let allSyncStates = [];
-        let syncState;
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            if (file.mimeType === 'application/vnd.google-apps.folder') {
-                const childFolderPath = path_1.default.join(folderPath, file.name);
-                if (options.verbose) {
-                    options.logger.debug('DIR', file.id, childFolderPath, file.name);
+        do {
+            const response = yield drive.files.list({
+                pageToken: nextPageToken,
+                includeRemoved: false,
+                spaces: 'drive',
+                fileId: fileId,
+                fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime)',
+                q: `'${fileId}' in parents`,
+                pageSize: 200
+            });
+            // Needed to get further results
+            nextPageToken = response.data.nextPageToken;
+            const files = response.data.files;
+            let syncState;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.mimeType === 'application/vnd.google-apps.folder') {
+                    const childFolderPath = path_1.default.join(folderPath, file.name);
+                    if (options.verbose) {
+                        options.logger.debug('DIR', file.id, childFolderPath, file.name);
+                    }
+                    yield fs_extra_1.default.mkdirp(childFolderPath);
+                    if (options.sleepTime) {
+                        yield sleep(options.sleepTime);
+                    }
+                    syncState = yield visitDirectory(drive, file.id, childFolderPath, options);
+                    allSyncStates = allSyncStates.concat(syncState);
                 }
-                yield fs_extra_1.default.mkdirp(childFolderPath);
-                if (options.sleepTime) {
-                    yield sleep(options.sleepTime);
+                else {
+                    if (options.verbose) {
+                        options.logger.debug('DIR', file.id, folderPath, file.name);
+                    }
+                    syncState = yield downloadContent(drive, file, folderPath, options);
+                    allSyncStates.push(syncState);
                 }
-                syncState = yield visitDirectory(drive, file.id, childFolderPath, options);
-                allSyncStates = allSyncStates.concat(syncState);
             }
-            else {
-                if (options.verbose) {
-                    options.logger.debug('DIR', file.id, folderPath, file.name);
-                }
-                syncState = yield downloadContent(drive, file, folderPath, options);
-                allSyncStates.push(syncState);
-            }
-        }
+            // continue until there is no next page
+        } while (nextPageToken);
         return allSyncStates;
     });
 }
@@ -281,7 +291,7 @@ function syncGDrive(fileFolderId, destFolder, keyConfig, options) {
             ], null);
             googleapis_1.google.options({ auth });
             const drive = googleapis_1.google.drive('v3');
-            return yield fetchContents(drive, fileFolderId, destFolder, initIOptions(options));
+            return fetchContents(drive, fileFolderId, destFolder, initIOptions(options));
         }
         catch (error) {
             log(error);

@@ -121,8 +121,10 @@ async function isGDriveFileNewer(gDriveFile, filePath: string) {
 async function downloadFile (drive, file, destFolder: string, options: IOptions = {}) {
     const filePath = path.join(destFolder, file.name);
     if (await isGDriveFileNewer(file, filePath)) {
-        options.logger.debug('downloading newer: ', filePath);
-        options.logger.debug('creating file: ', filePath);
+        if (options.verbose) {
+            options.logger.debug('downloading newer: ', filePath);
+            options.logger.debug('creating file: ', filePath);
+        }
         const dest = fs.createWriteStream(filePath);
 
         const response = await drive.files.get({
@@ -229,42 +231,53 @@ async function downloadContent (drive, file, path: string, options: IOptions) {
 
 
 async function visitDirectory (drive, fileId: string, folderPath: string, options: IOptions, callback?: Function) {
-    const response = await drive.files.list({
-        includeRemoved: false,
-        spaces: 'drive',
-        fileId: fileId,
-        fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime)',
-        q: `'${fileId}' in parents`
-    });
 
-    const { files } = response.data;
+    let nextPageToken;
     let allSyncStates = [];
-    let syncState;
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+    do {
+        const response = await drive.files.list({
+            pageToken: nextPageToken,
+            includeRemoved: false,
+            spaces: 'drive',
+            fileId: fileId,
+            fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime)',
+            q: `'${fileId}' in parents`,
+            pageSize: 200
+        });
 
-        if (file.mimeType === 'application/vnd.google-apps.folder') {
-            const childFolderPath = path.join(folderPath, file.name);
+        // Needed to get further results
+        nextPageToken = response.data.nextPageToken;
 
-            if (options.verbose) {
-                options.logger.debug('DIR', file.id, childFolderPath, file.name)
+        const files = response.data.files;
+        let syncState;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            if (file.mimeType === 'application/vnd.google-apps.folder') {
+                const childFolderPath = path.join(folderPath, file.name);
+
+                if (options.verbose) {
+                    options.logger.debug('DIR', file.id, childFolderPath, file.name)
+                }
+
+                await fs.mkdirp(childFolderPath);
+                if (options.sleepTime) {
+                    await sleep(options.sleepTime);
+                }
+                syncState = await visitDirectory(drive, file.id, childFolderPath, options);
+                allSyncStates = allSyncStates.concat(syncState);
+            } else {
+                if (options.verbose) {
+                    options.logger.debug('DIR', file.id, folderPath, file.name)
+                }
+                syncState = await downloadContent(drive, file, folderPath, options);
+                allSyncStates.push(syncState);
             }
-
-            await fs.mkdirp(childFolderPath);
-            if (options.sleepTime) {
-                await sleep(options.sleepTime);
-            }
-            syncState = await visitDirectory(drive, file.id, childFolderPath, options);
-            allSyncStates = allSyncStates.concat(syncState);
-        } else {
-            if (options.verbose) {
-                options.logger.debug('DIR', file.id, folderPath, file.name)
-            }
-            syncState = await downloadContent(drive, file, folderPath, options);
-            allSyncStates.push(syncState);
         }
-    }
+    // continue until there is no next page
+    } while (nextPageToken);
 
     return allSyncStates;
 }
@@ -307,7 +320,7 @@ async function syncGDrive (fileFolderId, destFolder: string, keyConfig: IKeyConf
 
         const drive = google.drive('v3');
 
-        return await fetchContents(drive, fileFolderId, destFolder, initIOptions(options));
+        return fetchContents(drive, fileFolderId, destFolder, initIOptions(options));
     } catch (error) {
         log(error);
     }
