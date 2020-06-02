@@ -1,12 +1,16 @@
 {
   "name": "sync-gdrive",
-  "version": "0.9.2",
+  "version": "0.9.5",
   "description": "Module to synchronise a file or directory in Google Drive with the local file system",
   "main": "dist/index.js",
+  "bin": {
+    "sync-gdrive": "dist/cli.js"
+  },
   "engines": {
     "node": ">=10.0.0"
   },
   "scripts": {
+    "sync-gdrive": "ts-node src/cli.ts",
     "build": "tsc",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
     "test": "mocha --exit -r ts-node/register -r esm test/*.ts"

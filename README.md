@@ -65,6 +65,26 @@ Further reading:
    - [googleapis](https://www.npmjs.com/package/googleapis) npm module
    - [supported export types](https://developers.google.com/drive/api/v3/ref-export-formats)
 
+## CLI
+
+There is now a basic CLI, so you can use this package without needing to integrate it into
+a JS application first. You can install it either globally (assuming a Unix type environment):
+
+```bash
+npm install -g sync-gdrive
+export GOOGLE_CLIENT_EMAIL="xxxxxx"
+export GOOGLE_PRIVATE_KEY="xxxxxx"
+sync-gdrive "filefolderid" "dest_folder"
+```
+
+or if you already installed it as a dependency of your project:
+
+```bash
+export GOOGLE_CLIENT_EMAIL="xxxxxx"
+export GOOGLE_PRIVATE_KEY="xxxxxx"
+./node_modules/.bin/sync-gdrive "filefolderid" "dest_folder"
+```
+
 ## Contributions & Feedback
 
 Contributions and feedback is welcome. Please open

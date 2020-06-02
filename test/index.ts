@@ -38,17 +38,17 @@ describe('Endpoints', async () => {
 
         filefolderId = process.env.GDRIVE_FILEFOLDER_ID;
         if (!filefolderId) {
-            throw new Error('No Google Drive file or folder id specified. Be sure to set env GDRIVE_FILEFOLDER_ID.');
+            throw new Error('No Google Drive file or folder id specified. Be sure to set GDRIVE_FILEFOLDER_ID  env variable.');
         }
 
         clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
         if (!clientEmail) {
-            throw new Error('No client email specified. Be sure to set GOOGLE_CLIENT_EMAIL.');
+            throw new Error('No client email specified. Be sure to set GOOGLE_CLIENT_EMAIL env variable.');
         }
 
         privateKey = process.env.GOOGLE_PRIVATE_KEY;
         if (!privateKey) {
-            throw new Error('No Google API privaye key specified. Be sure to set GOOGLE_PRIVATE_KEY.');
+            throw new Error('No Google API private key specified. Be sure to set GOOGLE_PRIVATE_KEY env variable.');
         }
 
         privateKey = privateKey.replace(/\\n/g, '\n').trim();
@@ -70,6 +70,7 @@ describe('Endpoints', async () => {
         const filefolderByPath = {};
 
         expect(syncedFileFolders).to.be.not.null;
+        expect(syncedFileFolders).to.be.not.undefined;
 
         syncedFileFolders.forEach(filefolder => {
             filefolderByPath[filefolder.file] = filefolder;
