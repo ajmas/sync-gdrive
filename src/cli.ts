@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 /* eslint-disable no-console */
 import fs from 'fs';
-import syncGDrive, { IKeyConfig } from '../';
+import syncGDrive, { IKeyConfig } from './';
 
 async function main () {
     try {
@@ -25,6 +25,8 @@ async function main () {
         // Unescape new lines
         privateKey = privateKey.replace(/\\n/g, '\n');
 
+        console.log('>>', clientEmail);
+        console.log('>>', privateKey);
         if (process.argv.length < 4) {
             console.log('usage: sync-gdrive <drive_file_folder_id> <dest_path>');
             process.exit(1);

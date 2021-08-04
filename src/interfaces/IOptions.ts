@@ -4,6 +4,7 @@ interface IOptions {
     docsFileType?: string,
     sheetsFileType?: string,
     slidesFileType?: string,
+    mapsFileType?: string,
     fallbackGSuiteFileType?: string,
     abortOnError?: boolean,
     logger?: any,

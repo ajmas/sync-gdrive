@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fs from 'fs-extra';
 import path from 'path';
 import { promisify } from 'util';
@@ -16,6 +17,10 @@ function sleep(timeout: number = 1000, value?: any) {
             resolve(value);
         }, timeout);
     });
+}
+
+function sanitiseFilename(filename) {
+    return filename.replace(/[/\\\r\n\t]/g, '_');
 }
 
 // Provide a default log function
@@ -37,6 +42,7 @@ function initIOptions(options: IOptions = {}): IOptions {
         docsFileType: 'docx',
         sheetsFileType: 'xlsx',
         slidesFileType: 'pdf',
+        mapsFileType: 'kml',
         fallbackGSuiteFileType: 'pdf',
         abortOnError: true,
         logger: {
@@ -119,7 +125,7 @@ async function isGDriveFileNewer(gDriveFile, filePath: string) {
 }
 
 async function downloadFile (drive, file, destFolder: string, options: IOptions = {}) {
-    const filePath = path.join(destFolder, file.name);
+    const filePath = path.join(destFolder, sanitiseFilename(file.name));
     if (await isGDriveFileNewer(file, filePath)) {
         if (options.verbose) {
             options.logger.debug('downloading newer: ', filePath);
@@ -127,8 +133,13 @@ async function downloadFile (drive, file, destFolder: string, options: IOptions 
         }
         const dest = fs.createWriteStream(filePath);
 
+        let fileId = file.id;
+        if (file.shortcutDetails) {
+            fileId = file.shortcutDetails.targetId;
+        }
+
         const response = await drive.files.get({
-            fileId: file.id,
+            fileId: fileId,
             alt: 'media'
         }, {
             responseType: 'stream'
@@ -161,7 +172,7 @@ async function downloadFile (drive, file, destFolder: string, options: IOptions 
 }
 
 async function exportFile (drive, file, destFolder: string, mimeType: string, suffix: string, options: IOptions = {}) {
-    const name = file.name + suffix;
+    const name = sanitiseFilename(file.name) + suffix;
     const filePath = path.join(destFolder, name);
 
     if (await isGDriveFileNewer(file, filePath)) {
@@ -172,10 +183,14 @@ async function exportFile (drive, file, destFolder: string, mimeType: string, su
 
         const dest = fs.createWriteStream(filePath);
 
+        let fileId = file.id;
+        if (file.shortcutDetails) {
+            fileId = file.shortcutDetails.targetId;
+        }
+
         // For Google Docs files only
         const response = await drive.files.export({
-            fileId: file.id,
-            mimeType: mimeType
+            fileId, mimeType
         }, {
             responseType: 'stream'
         });
@@ -210,19 +225,30 @@ async function exportFile (drive, file, destFolder: string, mimeType: string, su
 async function downloadContent (drive, file, path: string, options: IOptions) {
     let result;
 
+    let fileMimeType = file.mimeType;
+    if (file.shortcutDetails) {
+        fileMimeType = file.shortcutDetails.targetMimeType;
+    }
+
     if (file.mimeType === 'application/vnd.google-apps.document') {
-        const mimeType = mime.getType(options.docsFileType);
-        result = await exportFile(drive, file, path, mimeType, `.${options.docsFileType}`, options);
-    } else if (file.mimeType === 'application/vnd.google-apps.spreadsheet') {
-        const mimeType = mime.getType(options.sheetsFileType);
-        result = await exportFile(drive, file, path, mimeType, `.${options.sheetsFileType}`, options);
-    } else if (file.mimeType === 'application/vnd.google-apps.presentation') {
-        const mimeType = mime.getType(options.slidesFileType);
-        result = await exportFile(drive, file, path, mimeType, `.${options.slidesFileType}`, options);
-    } else if (file.mimeType && file.mimeType.startsWith('application/vnd.google-apps')) {
-        const mimeType = mime.getType(options.fallbackGSuiteFileType);
-        result = await exportFile(drive, file, path, mimeType, `.${options.fallbackGSuiteFileType}`, options);
+        const exportimeType = mime.getType(options.docsFileType);
+        result = await exportFile(drive, file, path, exportimeType, `.${options.docsFileType}`, options);
+    } else if (fileMimeType === 'application/vnd.google-apps.spreadsheet') {
+        const exportimeType = mime.getType(options.sheetsFileType);
+        result = await exportFile(drive, file, path, exportimeType, `.${options.sheetsFileType}`, options);
+    } else if (fileMimeType === 'application/vnd.google-apps.presentation') {
+        const exportimeType = mime.getType(options.slidesFileType);
+        result = await exportFile(drive, file, path, exportimeType, `.${options.slidesFileType}`, options);
+    } else if (fileMimeType === 'application/vnd.google-apps.map') {
+        const exportimeType = mime.getType(options.mapsFileType);
+        result = await exportFile(drive, file, path, exportimeType, `.${options.mapsFileType}`, options);
+    } else if (fileMimeType && fileMimeType.startsWith('application/vnd.google-apps')) {
+        // eslint-disable-next-line no-console
+        const exportimeType = mime.getType(options.fallbackGSuiteFileType);
+        result = await exportFile(drive, file, path, exportimeType, `.${options.fallbackGSuiteFileType}`, options);
     } else {
+        // eslint-disable-next-line no-console
+        console.log('B>>>>', file.mimeType);
         result = await downloadFile(drive, file, path, options);
     }
 
@@ -241,7 +267,7 @@ async function visitDirectory (drive, fileId: string, folderPath: string, option
             includeRemoved: false,
             spaces: 'drive',
             fileId: fileId,
-            fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime)',
+            fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime, shortcutDetails)',
             q: `'${fileId}' in parents`,
             pageSize: 200
         });
