@@ -11,25 +11,49 @@ import rimraf from 'rimraf';
 
 import syncGDrive, { IKeyConfig } from '../src';
 
+interface BasicFileInfo {
+    path: string,
+    size: number
+};
+
 const fsMkdtemp = promisify(fs.mkdtemp);
+const fsReaddir = promisify(fs.readdir);
+const fsStat = promisify(fs.stat);
 const asyncRimraf = promisify(rimraf);
 
-const expectedManifest = [{
-    path: 'gsuite-docs/Hello doc.docx',
-    size: 6099
-}, {
-    path: 'gsuite-docs/Hello slides.pdf',
-    size: 15787
-}, {
-    path: 'gsuite-docs/Hello sheets.xlsx',
-    size: 4709
-}];
+
+let expectedManifest: BasicFileInfo[];
 
 const removeTmpFolder = false;
 let tmpFolder = '';
 let filefolderId;
 let privateKey;
 let clientEmail;
+
+async function createdExpectedManifest (baseDir: string): Promise<BasicFileInfo[]> {
+    const walkList: string[] = [];
+    const manifest: BasicFileInfo[] = [];
+
+    walkList.push(baseDir);
+    while (walkList.length > 0) {
+        const dirpath = walkList.pop() as string;
+        const files = await fsReaddir(dirpath, { withFileTypes: true });
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].isDirectory()) {
+                walkList.push(path.join(dirpath, files[i].name));
+            } else if (files[i].isFile()) {
+                const filepath = path.join(dirpath, files[i].name);
+                const stats = await fsStat(filepath);
+                manifest.push({
+                    path: filepath.substring(baseDir.length + 1),
+                    size: stats.size
+                })
+            }
+        }
+    }
+
+    return manifest;
+}
 
 describe('Endpoints', async () => {
 
@@ -53,8 +77,9 @@ describe('Endpoints', async () => {
 
         privateKey = privateKey.replace(/\\n/g, '\n').trim();
 
-        tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), 'tmp-sync-gdrive}'));
+        tmpFolder = await fsMkdtemp(path.join(os.tmpdir(), 'tmp-sync-gdrive'));
 
+        expectedManifest = await createdExpectedManifest('test_data');
     });
 
     it('Should sync files from folder on drive', async function () {
