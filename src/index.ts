@@ -329,7 +329,7 @@ async function fetchContents(drive: Drive, fileId: string, destFolder: string, o
 }
 
 
-async function syncGDrive (fileFolderId, destFolder: string, keyConfig: IKeyConfig, options?: IOptions) {
+async function syncGDrive (fileFolderId: string, destFolder: string, keyConfig: IKeyConfig, options?: IOptions) {
     try {
         const auth = new google.auth.JWT(
             keyConfig.clientEmail,
