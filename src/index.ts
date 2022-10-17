@@ -3,11 +3,15 @@ import fs from 'fs-extra';
 import path from 'path';
 import { promisify } from 'util';
 
-import { google } from 'googleapis';
+import { google, drive_v3 } from 'googleapis';
 import mime from 'mime';
 
 import IKeyConfig from './interfaces/IKeyConfig';
 import IOptions from './interfaces/IOptions';
+import ISyncState from './interfaces/ISyncState';
+
+type Drive = drive_v3.Drive;
+type File = drive_v3.Schema$File;
 
 const fsStat = promisify(fs.stat);
 
@@ -19,12 +23,12 @@ function sleep(timeout: number = 1000, value?: any) {
     });
 }
 
-function sanitiseFilename(filename) {
+function sanitiseFilename(filename: string) {
     return filename.replace(/[/\\\r\n\t]/g, '_');
 }
 
 // Provide a default log function
-function log(level, ...message) {
+function log(level: string, ...message: any[]) {
     // eslint-disable-next-line no-console
     console.log(`[${level}] ${message.join(' ')}`);
 }
@@ -95,12 +99,17 @@ function initIOptions(options: IOptions = {}): IOptions {
  *
  * @param datetime
  */
-function timeAsSeconds(datetime: number | Date) {
+function timeAsSeconds(datetime: string | number | Date): number {
+    let timeInMilliseconds = 0;
     if (typeof datetime === 'string') {
-        return Date.parse(datetime) / 1000;
+        timeInMilliseconds = Date.parse(datetime);
     } else if (datetime instanceof Date) {
-        return datetime.getTime() / 1000;
+        timeInMilliseconds = datetime.getTime();
+    } else {
+        timeInMilliseconds = datetime as number;
     }
+
+    return timeInMilliseconds / 1000;
 }
 
 /**
@@ -109,7 +118,7 @@ function timeAsSeconds(datetime: number | Date) {
  * @param file
  * @param path
  */
-async function isGDriveFileNewer(gDriveFile, filePath: string) {
+async function isGDriveFileNewer(gDriveFile: File, filePath: string) {
     try {
         const stats = await fsStat(filePath);
         const fsModifiedTime = timeAsSeconds(stats.mtime);
@@ -124,7 +133,7 @@ async function isGDriveFileNewer(gDriveFile, filePath: string) {
     }
 }
 
-async function downloadFile (drive, file, destFolder: string, options: IOptions = {}) {
+async function downloadFile (drive: Drive, file, destFolder: string, options: IOptions = {}) {
     const filePath = path.join(destFolder, sanitiseFilename(file.name));
     if (await isGDriveFileNewer(file, filePath)) {
         if (options.verbose) {
@@ -171,7 +180,7 @@ async function downloadFile (drive, file, destFolder: string, options: IOptions 
     };
 }
 
-async function exportFile (drive, file, destFolder: string, mimeType: string, suffix: string, options: IOptions = {}) {
+async function exportFile (drive: Drive, file: File, destFolder: string, mimeType: string, suffix: string, options: IOptions = {}): Promise<ISyncState> {
     const name = sanitiseFilename(file.name) + suffix;
     const filePath = path.join(destFolder, name);
 
@@ -222,7 +231,7 @@ async function exportFile (drive, file, destFolder: string, mimeType: string, su
 }
 
 
-async function downloadContent (drive, file, path: string, options: IOptions) {
+async function downloadContent (drive: Drive, file: File, path: string, options: IOptions) {
     let result;
 
     let fileMimeType = file.mimeType;
@@ -248,7 +257,6 @@ async function downloadContent (drive, file, path: string, options: IOptions) {
         result = await exportFile(drive, file, path, exportimeType, `.${options.fallbackGSuiteFileType}`, options);
     } else {
         // eslint-disable-next-line no-console
-        console.log('B>>>>', file.mimeType);
         result = await downloadFile(drive, file, path, options);
     }
 
@@ -256,17 +264,15 @@ async function downloadContent (drive, file, path: string, options: IOptions) {
 }
 
 
-async function visitDirectory (drive, fileId: string, folderPath: string, options: IOptions, callback?: Function) {
+async function visitDirectory (drive: Drive, fileId: string, folderPath: string, options: IOptions, callback?: Function): Promise<ISyncState[]> {
 
     let nextPageToken;
-    let allSyncStates = [];
+    let allSyncStates: ISyncState[] = [];
 
     do {
         const response = await drive.files.list({
             pageToken: nextPageToken,
-            includeRemoved: false,
             spaces: 'drive',
-            fileId: fileId,
             fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime, shortcutDetails)',
             q: `'${fileId}' in parents`,
             pageSize: 200
@@ -276,7 +282,6 @@ async function visitDirectory (drive, fileId: string, folderPath: string, option
         nextPageToken = response.data.nextPageToken;
 
         const files = response.data.files;
-        let syncState;
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
@@ -292,13 +297,13 @@ async function visitDirectory (drive, fileId: string, folderPath: string, option
                 if (options.sleepTime) {
                     await sleep(options.sleepTime);
                 }
-                syncState = await visitDirectory(drive, file.id, childFolderPath, options);
+                const syncState = await visitDirectory(drive, file.id, childFolderPath, options);
                 allSyncStates = allSyncStates.concat(syncState);
             } else {
                 if (options.verbose) {
                     options.logger.debug('DIR', file.id, folderPath, file.name)
                 }
-                syncState = await downloadContent(drive, file, folderPath, options);
+                const syncState = await downloadContent(drive, file, folderPath, options);
                 allSyncStates.push(syncState);
             }
         }
@@ -308,7 +313,7 @@ async function visitDirectory (drive, fileId: string, folderPath: string, option
     return allSyncStates;
 }
 
-async function fetchContents(drive, fileId: string, destFolder: string, options: IOptions) {
+async function fetchContents(drive: Drive, fileId: string, destFolder: string, options: IOptions) {
     const response = await drive.files.get({
         fileId: fileId,
         fields: 'id, name, parents, mimeType, createdTime, modifiedTime'
@@ -324,7 +329,7 @@ async function fetchContents(drive, fileId: string, destFolder: string, options:
 }
 
 
-async function syncGDrive (fileFolderId, destFolder: string, keyConfig: IKeyConfig, options?: IOptions) {
+async function syncGDrive (fileFolderId: string, destFolder: string, keyConfig: IKeyConfig, options?: IOptions) {
     try {
         const auth = new google.auth.JWT(
             keyConfig.clientEmail,
