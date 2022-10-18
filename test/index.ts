@@ -24,7 +24,8 @@ const asyncRimraf = promisify(rimraf);
 
 let expectedManifest: BasicFileInfo[];
 
-const removeTmpFolder = false;
+const filesToIgnore = ['.DS_Store'];
+const removeTmpFolder = true;
 let tmpFolder = '';
 let filefolderId;
 let privateKey;
@@ -41,7 +42,7 @@ async function createdExpectedManifest (baseDir: string): Promise<BasicFileInfo[
         for (let i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 walkList.push(path.join(dirpath, files[i].name));
-            } else if (files[i].isFile()) {
+            } else if (files[i].isFile() && filesToIgnore.indexOf(files[i].name) < 0) {
                 const filepath = path.join(dirpath, files[i].name);
                 const stats = await fsStat(filepath);
                 manifest.push({
