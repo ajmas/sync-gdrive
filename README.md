@@ -85,6 +85,13 @@ export GOOGLE_PRIVATE_KEY="xxxxxx"
 ./node_modules/.bin/sync-gdrive "filefolderid" "dest_folder"
 ```
 
+### Targeted environments
+
+This project will not work in the browser, due to dependencies on the
+file system.
+
+Targeted node.js versions are 10.12+
+
 ## Contributions & Feedback
 
 Contributions and feedback is welcome. Please open

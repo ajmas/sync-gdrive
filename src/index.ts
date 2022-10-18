@@ -1,7 +1,5 @@
-/* eslint-disable no-console */
-import fs from 'fs-extra';
+import { utimesSync, createWriteStream, promises as fs} from 'fs';
 import path from 'path';
-import { promisify } from 'util';
 
 import { google, drive_v3 } from 'googleapis';
 import mime from 'mime';
@@ -12,8 +10,6 @@ import ISyncState from './interfaces/ISyncState';
 
 type Drive = drive_v3.Drive;
 type File = drive_v3.Schema$File;
-
-const fsStat = promisify(fs.stat);
 
 function sleep(timeout: number = 1000, value?: any) {
     return new Promise(function (resolve, reject) {
@@ -120,7 +116,7 @@ function timeAsSeconds(datetime: string | number | Date): number {
  */
 async function isGDriveFileNewer(gDriveFile: File, filePath: string) {
     try {
-        const stats = await fsStat(filePath);
+        const stats = await fs.stat(filePath);
         const fsModifiedTime = timeAsSeconds(stats.mtime);
         const driveModifiedTime = timeAsSeconds(gDriveFile.modifiedTime);
         return (driveModifiedTime > fsModifiedTime);
@@ -140,7 +136,7 @@ async function downloadFile (drive: Drive, file, destFolder: string, options: IO
             options.logger.debug('downloading newer: ', filePath);
             options.logger.debug('creating file: ', filePath);
         }
-        const dest = fs.createWriteStream(filePath);
+        const dest = createWriteStream(filePath);
 
         let fileId = file.id;
         if (file.shortcutDetails) {
@@ -161,7 +157,7 @@ async function downloadFile (drive: Drive, file, destFolder: string, options: IO
                 .on('error', reject)
                 .on('finish', () => {
                     // apply time stamp from the drive
-                    fs.utimesSync(
+                    utimesSync(
                         filePath,
                         timeAsSeconds(file.createdTime),
                         timeAsSeconds(file.modifiedTime)
@@ -190,7 +186,7 @@ async function exportFile (drive: Drive, file: File, destFolder: string, mimeTyp
             options.logger.debug('exporting to file: ', filePath);
         }
 
-        const dest = fs.createWriteStream(filePath);
+        const dest = createWriteStream(filePath);
 
         let fileId = file.id;
         if (file.shortcutDetails) {
@@ -211,7 +207,7 @@ async function exportFile (drive: Drive, file: File, destFolder: string, mimeTyp
                 .on('error', reject)
                 .on('finish', () => {
                     // apply time stamp from the drive
-                    fs.utimesSync(
+                    utimesSync(
                         filePath,
                         timeAsSeconds(file.createdTime),
                         timeAsSeconds(file.modifiedTime)
@@ -293,7 +289,7 @@ async function visitDirectory (drive: Drive, fileId: string, folderPath: string,
                     options.logger.debug('DIR', file.id, childFolderPath, file.name)
                 }
 
-                await fs.mkdirp(childFolderPath);
+                await fs.mkdir(childFolderPath, { recursive: true });
                 if (options.sleepTime) {
                     await sleep(options.sleepTime);
                 }

@@ -14,7 +14,7 @@ import syncGDrive, { IKeyConfig } from '../src';
 interface BasicFileInfo {
     path: string,
     size: number
-};
+}
 
 const fsMkdtemp = promisify(fs.mkdtemp);
 const fsReaddir = promisify(fs.readdir);

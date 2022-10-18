@@ -15,7 +15,7 @@
       "typeRoots": [
         "node_modules/@types"
       ],
-      "rootDir": "src",
+      "rootDirs": ["src"],
       "outDir": "dist",
       "esModuleInterop": true,
       "resolveJsonModule": true
@@ -28,7 +28,6 @@
       ]
     },
     "include": [
-      "src/",
-      "test/"
+      "src/"
     ]
   }
