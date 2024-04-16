@@ -109,7 +109,7 @@ describe('Endpoints', async () => {
             expect(filefolderByPath).to.have.property(filefolderPath);
             const stats = fs.statSync(filefolderPath);
 
-            expect(stats.size).to.equal(filefolder.size);
+            expect(stats.size, `File: ${filefolder.path}`).to.equal(filefolder.size);
         });
     });
 
