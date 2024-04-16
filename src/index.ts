@@ -41,7 +41,7 @@ function initIOptions(options: IOptions = {}): IOptions {
         callback: undefined,
         docsFileType: 'docx',
         sheetsFileType: 'xlsx',
-        slidesFileType: 'pdf',
+        slidesFileType: 'pptx',
         mapsFileType: 'kml',
         fallbackGSuiteFileType: 'pdf',
         abortOnError: true,

@@ -90,7 +90,7 @@ export GOOGLE_PRIVATE_KEY="xxxxxx"
 This project will not work in the browser, due to dependencies on the
 file system.
 
-Targeted node.js versions are 10.12+
+Targeted node.js versions are 16+ .
 
 ## Contributions & Feedback
 

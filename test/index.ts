@@ -7,7 +7,7 @@ import { describe, before, after, it } from 'mocha';
 import { expect } from 'chai';
 
 import dotenv from 'dotenv';
-import rimraf from 'rimraf';
+import { rimrafSync } from 'rimraf';
 
 import syncGDrive, { IKeyConfig } from '../src';
 
@@ -19,8 +19,6 @@ interface BasicFileInfo {
 const fsMkdtemp = promisify(fs.mkdtemp);
 const fsReaddir = promisify(fs.readdir);
 const fsStat = promisify(fs.stat);
-const asyncRimraf = promisify(rimraf);
-
 
 let expectedManifest: BasicFileInfo[];
 
@@ -109,7 +107,6 @@ describe('Endpoints', async () => {
 
             expect(syncedFileFolders).to.be.not.null;
             expect(filefolderByPath).to.have.property(filefolderPath);
-
             const stats = fs.statSync(filefolderPath);
 
             expect(stats.size).to.equal(filefolder.size);
@@ -118,7 +115,7 @@ describe('Endpoints', async () => {
 
     after(async () => {
         if (removeTmpFolder) {
-            await asyncRimraf(tmpFolder);
+            rimrafSync(tmpFolder);
         }
     });
 });
