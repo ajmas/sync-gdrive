@@ -14,7 +14,9 @@
     "sync-gdrive": "ts-node src/cli.ts",
     "build": "tsc",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
-    "test": "mocha --exit --import=tsx -r esm test/*.ts"
+    "test:integration": "mocha --exit --import=tsx -r esm test/*.ts",
+    "test:basic": "cross-env npm run build && npm run lint",
+    "test": "npm run test:basic"
   },
   "keywords": [
     "sync",
@@ -36,6 +38,7 @@
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "chai": "^5.1.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
