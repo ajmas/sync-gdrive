@@ -8,7 +8,9 @@ interface IOptions {
     fallbackGSuiteFileType?: string,
     abortOnError?: boolean,
     logger?: any,
-    sleepTime?: number
+    sleepTime?: number,
+    supportsAllDrives?: boolean,
+    includeItemsFromAllDrives?: boolean
 }
 
 export default IOptions;
