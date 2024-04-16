@@ -3,11 +3,12 @@
   "version": "1.1.0",
   "description": "Module to synchronise a file or directory in Google Drive with the local file system",
   "main": "dist/index.js",
+  "browser": false,
   "bin": {
     "sync-gdrive": "dist/cli.js"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "sync-gdrive": "ts-node src/cli.ts",

@@ -1,6 +1,5 @@
 # Sync GDrive
 
-
 This is a library to allow you to synchronise a file or directory in Google Drive with the local file system. Currently this solution provides a one way sync from Google Drive to the local file system.
 
 This code was orginally developped for the maison-notman-house API server, but it was felt that it would have more value as module that could be used by other projects.
@@ -90,7 +89,7 @@ export GOOGLE_PRIVATE_KEY="xxxxxx"
 This project will not work in the browser, due to dependencies on the
 file system.
 
-Targeted node.js versions are 16+ .
+Targeted node.js versions are 18+ .
 
 ## Contributions & Feedback
 
