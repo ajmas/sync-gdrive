@@ -53,7 +53,7 @@ Where:
      - callback: callback when a file is synced (default: undefined)
      - docsFileType: file type to use when exporting a Google Doc (default: docx )
      - sheetsFileType: file type to use when exporting a Google Sheet (default: xlsx)
-     - slidesFileType: file type to use when exporting Google Slides (default: pdf)
+     - slidesFileType: file type to use when exporting Google Slides (default: pptx)
      - fallbackGSuiteFileType: file type to use when exporting other GSuite files (default: pdf),
      - abortOnError: whether to abort on an error,
      - logger: logger to use in verbose mode, must have support for debug, warn and error functions
