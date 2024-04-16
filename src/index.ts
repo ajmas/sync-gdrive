@@ -267,6 +267,8 @@ async function visitDirectory (drive: Drive, fileId: string, folderPath: string,
 
     do {
         const response = await drive.files.list({
+            supportsAllDrives: options.supportsAllDrives,
+            includeItemsFromAllDrives: options.includeItemsFromAllDrives,
             pageToken: nextPageToken,
             spaces: 'drive',
             fields: 'nextPageToken, files(id, name, parents, mimeType, createdTime, modifiedTime, shortcutDetails)',
@@ -312,7 +314,8 @@ async function visitDirectory (drive: Drive, fileId: string, folderPath: string,
 async function fetchContents(drive: Drive, fileId: string, destFolder: string, options: IOptions) {
     const response = await drive.files.get({
         fileId: fileId,
-        fields: 'id, name, parents, mimeType, createdTime, modifiedTime'
+        fields: 'id, name, parents, mimeType, createdTime, modifiedTime',
+        supportsAllDrives: options.supportsAllDrives
     });
 
     const { data } = response;
