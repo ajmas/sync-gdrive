@@ -48,21 +48,24 @@ Where:
    - **keyConfig** Your key generated from the [Google API console](https://console.developers.google.com/apis/dashboard).
    - **options** optional parameter, allowing for tweaking of certain functionality:
 
-     - verbose: if true displays debug info (default: false)
-     - callback: callback when a file is synced (default: undefined)
-     - docsFileType: file type to use when exporting a Google Doc (default: docx )
-     - sheetsFileType: file type to use when exporting a Google Sheet (default: xlsx)
-     - slidesFileType: file type to use when exporting Google Slides (default: pptx)
-     - fallbackGSuiteFileType: file type to use when exporting other GSuite files (default: pdf),
-     - abortOnError: whether to abort on an error,
-     - logger: logger to use in verbose mode, must have support for debug, warn and error functions
-     - sleepTime: Rate limiter. How long to wait, in milleseconds, after downloading a file. (default: 500)
+     - **verbose**: if true displays debug info (default: false)
+     - **callback**: callback when a file is synced (default: undefined)
+     - **docsFileType**: file type to use when exporting a Google Doc (default: docx )
+     - **sheetsFileType**: file type to use when exporting a Google Sheet (default: xlsx)
+     - **slidesFileType**: file type to use when exporting Google Slides (default: pptx)
+     - **fallbackGSuiteFileType**: file type to use when exporting other GSuite files (default: pdf),
+     - **abortOnError**: whether to abort on an error,
+     - **logger**: logger to use in verbose mode, must have support for debug, warn and error functions
+     - **sleepTime**: Rate limiter. How long to wait, in milleseconds, after downloading a file. (default: 500)
+     - **supportAllDrives**: whether the requesting application supports both My Drives and shared drives. If false, then shared drive items are not included in the response 
+     - **includeItemsFromAllDrives**: whether shared drive items should be included in results. If not present or set to false, then shared drive items are not returned
 
 
 Further reading:
 
    - [googleapis](https://www.npmjs.com/package/googleapis) npm module
    - [supported export types](https://developers.google.com/drive/api/v3/ref-export-formats)
+   - [shared drives support](https://developers.google.com/drive/api/guides/enable-shareddrives)
 
 ## CLI
 
